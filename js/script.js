@@ -49,40 +49,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Form Handling Simulation
+    // Submit through FormSubmit without leaving the portfolio page.
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
 
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Simple validation simulation
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const message = document.getElementById('message').value;
+        contactForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-            if (name && email && message) {
-                // Change button text temporarily
-                const btn = contactForm.querySelector('button');
-                const originalText = btn.textContent;
-                btn.textContent = 'Sending...';
-                btn.disabled = true;
+            const submitButton = contactForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
+            formStatus.textContent = '';
+            formStatus.className = 'form-status';
 
-                // Simulate network request
-                setTimeout(() => {
-                    formStatus.textContent = 'Thank you! Your message has been sent successfully.';
-                    formStatus.className = 'form-status success';
-                    contactForm.reset();
-                    
-                    btn.textContent = originalText;
-                    btn.disabled = false;
+            try {
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: new FormData(contactForm),
+                    headers: { Accept: 'application/json' }
+                });
 
-                    // Clear message after 5 seconds
-                    setTimeout(() => {
-                        formStatus.textContent = '';
-                    }, 5000);
-                }, 1500);
+                if (!response.ok) {
+                    throw new Error('Message could not be sent.');
+                }
+
+                formStatus.textContent = 'Thank you! Your message has been sent.';
+                formStatus.className = 'form-status success';
+                contactForm.reset();
+            } catch (error) {
+                formStatus.textContent = 'Unable to send your message. Please try again.';
+                formStatus.className = 'form-status error';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Send Message';
             }
         });
     }
